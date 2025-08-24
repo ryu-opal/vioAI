@@ -2,52 +2,70 @@ import pyaudio
 import wave
 import speech_recognition as sr
 import os
+import keyboard  
 
-frames_per_buffer = 3200
-format = pyaudio.paInt16
-channels = 1
-rate = 16000
+def record_audio():
+    frames_per_buffer = 3200
+    format = pyaudio.paInt16
+    channels = 1
+    rate = 16000
 
-p = pyaudio.PyAudio()
+    p = pyaudio.PyAudio()
 
-stream = p.open(
-    format=format,
-    channels=channels,
-    rate=rate,
-    input=True,
-    frames_per_buffer=frames_per_buffer
-)
+    stream = p.open(
+        format=format,
+        channels=channels,
+        rate=rate,
+        input=True,
+        frames_per_buffer=frames_per_buffer
+    )
+    
+    print("left ctrl to record right arror to stop")
 
-print("start record")
+    keyboard.wait('ctrl')
+    print("start record")
+    
+    frames = []
+    recording = True
 
-seconds = 5
-frames = []
-for i in range(0,int(rate/frames_per_buffer*seconds)):
-    data = stream.read(frames_per_buffer)
-    frames.append(data)
+    def stop_recording(e):
+        nonlocal recording
+        if e.event_type == keyboard.KEY_DOWN and e.name == 'right':
+            recording = False
+            print("stop recording")
 
-stream.stop_stream()
-stream.close()
-p.terminate()
+    keyboard.on_press_key('right', stop_recording)
 
-output = "open.wav"
-obj = wave.open(output,"wb")
-obj.setnchannels(channels)
-obj.setsampwidth(p.get_sample_size(format))
-obj.setframerate(rate)
-obj.writeframes(b"".join(frames))
-obj.close()
 
-recognizer = sr.Recognizer()
+    while recording:
+        data = stream.read(frames_per_buffer)
+        frames.append(data)
 
-with sr.AudioFile(output) as source:
-    audio = recognizer.record(source)
-    try:
-        text = recognizer.recognize_google(audio, language="zh-TW")  # 轉為繁體中文
-        print(f"you say{text}")
-    except sr.UnknownValueError:
-        print("can't reconize")
-    except sr.RequestError as e:
-        print(f"voice error{e}")
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
 
-os.remove(output)
+    output = "open.wav"
+    obj = wave.open(output,"wb")
+    obj.setnchannels(channels)
+    obj.setsampwidth(p.get_sample_size(format))
+    obj.setframerate(rate)
+    obj.writeframes(b"".join(frames))
+    obj.close()
+
+    recognizer = sr.Recognizer()
+    
+    with sr.AudioFile(output) as source:
+        audio = recognizer.record(source)
+        try:
+            text = recognizer.recognize_google(audio, language="zh-TW")  
+            print(f"you say: {text}")
+        except sr.UnknownValueError:
+            print("can't defind voice")
+        except sr.RequestError as e:
+            print(f"voice error{e}")
+
+    os.remove(output)
+
+if __name__ == "__main__":
+    record_audio()
