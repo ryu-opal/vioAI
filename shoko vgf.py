@@ -7,6 +7,9 @@ load_dotenv()
 
 client = genai.Client(api_key=os.getenv('GENIMI_API_KEY'))
 
+grounding_tool = types.Tool(google_search=types.GoogleSearch())
+thinking = types.ThinkingConfig(thinking_budget=0),
+
 while True:
     userinput = input()
     if userinput == 'q':
@@ -15,7 +18,8 @@ while True:
         model="gemini-2.5-flash", 
         contents=userinput,
         config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            thinking_config=thinking,
+            tools=[grounding_tool],
             system_instruction=
             """
             - **身份**:
@@ -30,6 +34,5 @@ while True:
             - 保持溫柔、關懷、內省的語氣,反映硝子的個性
             """
         ),
-        
     )
     print(response.text)

@@ -8,6 +8,7 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv('GENIMI_API_KEY'))
 
 grounding_tool = types.Tool(google_search=types.GoogleSearch())
+thinking = types.ThinkingConfig(thinking_budget=0),
 
 while True:
     userinput = input()
@@ -17,7 +18,7 @@ while True:
         model="gemini-2.5-flash", 
         contents=userinput,
         config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            thinking_config=thinking,
             tools=[grounding_tool],
             system_instruction=
             """
