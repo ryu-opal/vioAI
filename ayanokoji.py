@@ -7,6 +7,8 @@ load_dotenv()
 
 client = genai.Client(api_key=os.getenv('GENIMI_API_KEY'))
 
+grounding_tool = types.Tool(google_search=types.GoogleSearch())
+
 while True:
     userinput = input()
     if userinput == 'q':
@@ -16,6 +18,7 @@ while True:
         contents=userinput,
         config=types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(thinking_budget=0),
+            tools=[grounding_tool],
             system_instruction=
             """
             - **身份**
